@@ -14,6 +14,8 @@ with noisy labels. In Advances in neural information processing systems, pages 1
 ### 1) Understanding the problem statement
 
 ### 2) Creating the synthetic data
+<img width="400" height="400" alt="dataset" src="https://github.com/jaydeepchakraborty/NoisyLabeledDataAnalysis/blob/master/images/DataPrep.png"/>
+
 
 ### 3) Splitting the dataset into training set and testing set
 
