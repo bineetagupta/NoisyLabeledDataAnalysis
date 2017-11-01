@@ -20,7 +20,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clear;
 rng(1);  % For reproducibility
-train_data = csvread('trainData.csv');
+train_data = csvread('NR1_trainData.csv');
 X_train=train_data(:,1:end-1);
 Y_train=train_data(:,end);
 
@@ -28,10 +28,21 @@ test_data = csvread('testData.csv');
 X_test=test_data(:,1:end-1);
 Y_test=test_data(:,end);
 
-CVSVMModel = fitcsvm(X_train,Y_train,'KernelFunction','linear','Standardize',true);
+CVSVMModel = fitcsvm(X_train,Y_train);
+%https://www.mathworks.com/help/stats/classificationsvm.resubloss.html
+%https://www.mathworks.com/help/stats/classificationkernel.loss.html
+linearloss = @(C,S,W,Cost)sum(-W.*sum(S.*C,2))/sum(W);
+train_loss = loss(CVSVMModel,X_train,Y_train,'LossFun',linearloss);
+test_loss = loss(CVSVMModel,X_test,Y_test,'LossFun',linearloss);
 
 [label,scores] = predict(CVSVMModel,X_test);
 
 table(Y_test,label,scores(:,2),'VariableNames',{'TrueLabel','PredictedLabel','Score'})
 
 [C,order] = confusionmat(Y_test,label);
+
+
+function l = customLoss(model,rho_pos,rho_neg)
+L = resubLoss(model,'LossFun','logit');
+l = ((1-rho_neg)*L - rho_pos*L)/(1-(rho_pos+rho_neg));
+end

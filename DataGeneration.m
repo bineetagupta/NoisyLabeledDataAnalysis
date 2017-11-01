@@ -18,9 +18,10 @@ h2 = scatter(cluster2(:,1),cluster2(:,2),10,'g.');
 legend([h1 h2],'Cluster 1','Cluster 2','Location','NW')
 
 cluster1 = [cluster1 zeros(size(cluster1,1),1)];
+cluster1(:,3) = 1 ;
 
 cluster2 = [cluster2 zeros(size(cluster2,1),1)];
-cluster2(:,3) = 1 ;
+cluster2(:,3) = -1 ;
 
 
 %70-30 data split
