@@ -1,25 +1,23 @@
 import tensorflow as tf
 import numpy as np
 import pandas as pd
+from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score, accuracy_score
 
+def loss_0_1(y_actual,y_pred):
+    if(y_actual == y_pred):
+        return 0
+    else:
+        return 1
 
 def custom_loss_func(ground_truth, predictions, rho_pos, rho_neg): 
-    ground_truth = np.array(ground_truth);
-    predictions = np.array(predictions)
-    
-    neg_indices = [i for i,x in enumerate(ground_truth) if x == -1]
-    neg_truth_val = ground_truth[neg_indices]
-    neg_pred_val = predictions[neg_indices]
-    
-    pos_indices = [i for i,x in enumerate(ground_truth) if x == 1]
-    pos_truth_val = ground_truth[pos_indices]
-    pos_pred_val = predictions[pos_indices]
-    
-    neg_Loss = ((1-np.count_nonzero((neg_truth_val == neg_pred_val)))/neg_pred_val.shape[0])
-    pos_Loss = ((1-np.count_nonzero((pos_truth_val == pos_pred_val)))/pos_pred_val.shape[0])
-    
-    cust_loss = (1-rho_neg)*pos_Loss - rho_pos*neg_Loss
+       
+    if(prediction == 1):
+        cust_loss = ((1-rho_neg)*loss_0_1(ground_truth,predictions) - rho_pos*loss_0_1(ground_truth,-predictions))/(1- rho_pos - rho_neg)
+    else:
+        cust_loss = ((1-rho_pos)*loss_0_1(ground_truth,predictions) - rho_neg*loss_0_1(ground_truth,-predictions))/(1- rho_pos - rho_neg)
+        
     return cust_loss
+
 
 
 rho_pos = 0.1
@@ -97,19 +95,6 @@ for step in range(epoch):
     # train
     sess.run(optimizer, feed_dict=feed_dict_train_data)
 
-y_train_mat = y_train.as_matrix()
-train_predicted = []
-for i in range(0, len(x_train)):
-    train_res = sess.run(prediction, feed_dict={x: [x_train.as_matrix()[i]], pkeep:1})
-    train_res[train_res == 1] = -1
-    train_res[train_res == 0] = 1
-    train_predicted.append(train_res[0])
-
-
-
-train_ground_truth = np.array(y_train_actual.as_matrix())
-train_predictions = np.array(train_predicted)
-print("Training Custom Loss:- ", custom_loss_func(train_ground_truth, train_predictions, rho_pos, rho_neg))
 
 #finding accuracy on testing set
 feed_dict_test = {x: x_test,
@@ -127,7 +112,19 @@ for i in range(0, len(x_test)):
     test_res[test_res == 1] = -1
     test_res[test_res == 0] = 1
     test_predicted.append(test_res[0])
+
+
+test_cust_acc = 0;
+for i in range(0, len(y_test_actual)):
+    test_cust_acc += custom_loss_func(y_test_actual[i], test_predicted[i], rho_pos, rho_neg);
     
-test_ground_truth = np.array(y_test_actual.as_matrix())
-test_predictions = np.array(test_predicted)
-print("Testing Custom Loss:- ", custom_loss_func(test_ground_truth, test_predictions, rho_pos, rho_neg))
+mean_test_cust_acc = np.mean(test_cust_acc)
+print("Custom Test Loss:- ", mean_test_cust_acc)
+
+# Evaluation matrix
+print("Confusion matrix on test data:- ")
+print(confusion_matrix(y_test_actual, test_predicted))
+print("Precision Test Score:- ",precision_score(y_test_actual, test_predicted, average='micro'))
+print("Recall Test Score:- ",recall_score(y_test_actual, test_predicted, average='micro'))
+print("F1 Test Score:- ",f1_score(y_test_actual, test_predicted, average='micro'))
+print("Accuracy Test Score:- ",accuracy_score(y_test_actual, test_predicted))

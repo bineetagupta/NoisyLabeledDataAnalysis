@@ -1,4 +1,4 @@
-data = csvread('trainData.csv');  %Select the entire training data
+data = csvread('trainData_2.csv');  %Select the entire training data
 
 idx_0 = data(:,3) == 1;
 lbl_0 = data(idx_0,:); %All the training data with label 0

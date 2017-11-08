@@ -1,26 +1,18 @@
 from sklearn import svm
 import numpy as np
-from sklearn.metrics import confusion_matrix
 from sklearn.metrics import hinge_loss
-from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
+from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score, accuracy_score
 
 
-def custom_loss_func(ground_truth, predictions, rho_pos, rho_neg): 
-    ground_truth = np.array(ground_truth);
-    predictions = np.array(predictions)
+def custom_loss_func(ground_truth, prediction, rho_pos, rho_neg): 
+
+    hingeLoss_1 = hinge_loss([ground_truth], [prediction])
+    hingeLoss_2 = hinge_loss([ground_truth], [-prediction])
+    if(prediction == 1):
+        cust_loss = ((1-rho_neg)*hingeLoss_1 - rho_pos*hingeLoss_2)/(1- rho_pos - rho_neg)
+    else:
+        cust_loss = ((1-rho_pos)*hingeLoss_1 - rho_neg*hingeLoss_2)/(1- rho_pos - rho_neg)
     
-    neg_indices = [i for i,x in enumerate(ground_truth) if x == -1]
-    neg_truth_val = ground_truth[neg_indices]
-    neg_pred_val = predictions[neg_indices]
-    
-    pos_indices = [i for i,x in enumerate(ground_truth) if x == 1]
-    pos_truth_val = ground_truth[pos_indices]
-    pos_pred_val = predictions[pos_indices]
-    
-    neg_hingeLoss = hinge_loss(neg_truth_val, neg_pred_val)
-    pos_hingeLoss = hinge_loss(pos_truth_val, pos_pred_val)
-    
-    cust_loss = (1-rho_neg)*pos_hingeLoss - rho_pos*neg_hingeLoss
     return cust_loss
 
 #http://scikit-learn.org/stable/modules/svm.html
@@ -54,24 +46,22 @@ for line in test_lines:
 linear_svc = svm.LinearSVC();
 linear_svc.fit(trainX, trainY);
 
-# trainingset accuracy
-train_predictions = linear_svc.predict(trainX);
-train_hinge_loss = hinge_loss(trainY, train_predictions);
-trian_cust_acc = custom_loss_func(trainY, train_predictions, rho_pos, rho_neg);
-print("Hinge Train Loss:- ", train_hinge_loss);
-print("Custom Train Loss:- ", trian_cust_acc);
 
 # testingset accuracy
 test_predictions = linear_svc.predict(testX);
 test_hinge_loss = hinge_loss(testY, test_predictions);
-test_cust_acc = custom_loss_func(testY, test_predictions, rho_pos, rho_neg);
-print("Hinge Test Loss:- ", test_hinge_loss);
-print("Custom Test Loss:- ", test_cust_acc);
+test_cust_acc = 0;
+for i in range(0, len(testY)):
+    test_cust_acc += custom_loss_func(testY[i], test_predictions[i], rho_pos, rho_neg);
+    
+mean_test_cust_acc = np.mean(test_cust_acc)
+print("Hinge Test Loss:- ", test_hinge_loss)
+print("Custom Test Loss:- ", mean_test_cust_acc)
 
 # Evaluation matrix
-print("Confusion matrix on test data:- ");
-print(confusion_matrix(testY, test_predictions));
-print("Precision Test Score:- ",precision_score(testY, test_predictions, average='micro'));
-print("Recall Test Score:- ",recall_score(testY, test_predictions, average='micro'));
-print("F1 Test Score:- ",f1_score(testY, test_predictions, average='micro'));
-print("Accuracy Test Score:- ",accuracy_score(testY, test_predictions));
+print("Confusion matrix on test data:- ")
+print(confusion_matrix(testY, test_predictions))
+print("Precision Test Score:- ",precision_score(testY, test_predictions, average='micro'))
+print("Recall Test Score:- ",recall_score(testY, test_predictions, average='micro'))
+print("F1 Test Score:- ",f1_score(testY, test_predictions, average='micro'))
+print("Accuracy Test Score:- ",accuracy_score(testY, test_predictions))
