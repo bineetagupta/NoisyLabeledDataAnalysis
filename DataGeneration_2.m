@@ -18,11 +18,12 @@ P1y = P1y + C1(2);
 P2x = P2x + C2(1);
 P2y = P2y + C2(2);
 
-figure
-plot(P1x,P1y,'or'); hold on;
-plot(P2x,P2y,'sb'); hold on;
+h = figure();
+h1 = plot(P1x,P1y,'or'); hold on;
+h2 = plot(P2x,P2y,'sb'); hold on;
+legend([h1 h2],'Cluster 1','Cluster 2','Location','NW')
 axis square
-
+saveas(h,'Data_2.png');
 cluster1 = [P1x,P1y];
 cluster2 = [P2x,P2y];
 
