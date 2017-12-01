@@ -1,48 +1,43 @@
-C1 = [1 2];   % center of the circle
-C2 = [-1 4];
-R1 = [8 10];  % range of radii
-R2 = [8 10];
-A1 = [1 3]*pi/2; % [rad] range of allowed angles
-A2 = [-1 1]*pi/2;
+function DataGeneration_2()
+    % https://www.mathworks.com/help/stats/gmdistribution.cluster.html
+    MU1 = [0 1];
+    SIGMA1 = [2 0; 0 0.5];
+    MU2 = [-1 -2];
+    SIGMA2 = [1 0;0 1];
+    rng(1); % For reproducibility
+    X = [mvnrnd(MU1,SIGMA1,5000);mvnrnd(MU2,SIGMA2,5000)];
 
-nPoints = 1400;
+    h = figure();
+    scatter(X(:,1),X(:,2),10,'.')
+    hold on
 
-urand = @(nPoints,limits)(limits(1) + rand(nPoints,1)*diff(limits));
-randomCircle = @(n,r,a)(pol2cart(urand(n,a),urand(n,r)));
+    obj = fitgmdist(X,2);
+    idx = cluster(obj,X);
+    cluster1 = X(idx == 1,:);
+    cluster2 = X(idx == 2,:);
+    h1 = scatter(cluster1(:,1),cluster1(:,2),10,'r.');
+    h2 = scatter(cluster2(:,1),cluster2(:,2),10,'g.');
+    legend([h1, h2],'Cluster 1','Cluster 2','Location','NW')
+    saveas(h,'Data_2.png');
 
-[P1x,P1y] = randomCircle(nPoints,R1,A1);
-P1x = P1x + C1(1);
-P1y = P1y + C1(2);
+    cluster1 = [cluster1 zeros(size(cluster1,1),1)];
+    cluster1(:,3) = 1 ;
 
-[P2x,P2y] = randomCircle(nPoints,R2,A2);
-P2x = P2x + C2(1);
-P2y = P2y + C2(2);
-
-h = figure();
-h1 = plot(P1x,P1y,'or'); hold on;
-h2 = plot(P2x,P2y,'sb'); hold on;
-legend([h1 h2],'Cluster 1','Cluster 2','Location','NW')
-axis square
-saveas(h,'Data_2.png');
-cluster1 = [P1x,P1y];
-cluster2 = [P2x,P2y];
-
-cluster1 = [cluster1 zeros(size(cluster1,1),1)];
-cluster1(:,3) = 1 ;
-
-cluster2 = [cluster2 zeros(size(cluster2,1),1)];
-cluster2(:,3) = -1 ;
+    cluster2 = [cluster2 zeros(size(cluster2,1),1)];
+    cluster2(:,3) = 0 ;
 
 
-%70-30 data split
-idx = randperm(size(cluster1,1));
-train_cluster1 = cluster1(idx(1:700),:);
-test_cluster1 = cluster1(idx(701:end),:);
-train_cluster2 = cluster2(idx(1:700),:);
-test_cluster2 = cluster2(idx(701:end),:);
+    %70-30 data split
+    idx = randperm(size(cluster1,1));
+    train_cluster1 = cluster1(idx(1:3000),:);
+    test_cluster1 = cluster1(idx(3001:end),:);
+    train_cluster2 = cluster2(idx(1:3000),:);
+    test_cluster2 = cluster2(idx(3001:end),:);
 
-train_data = [train_cluster1;train_cluster2];
-test_data = [test_cluster1;test_cluster2];
+    train_data = [train_cluster1;train_cluster2];
+    test_data = [test_cluster1;test_cluster2];
 
-csvwrite('trainData_2.csv',train_data)
-csvwrite('testData_2.csv',test_data)
+    csvwrite('trainData_2.csv',train_data)
+    csvwrite('testData_2.csv',test_data)
+
+end

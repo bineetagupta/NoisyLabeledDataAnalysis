@@ -1,38 +1,52 @@
-rng(1);  % For reproducibility
-n = 700; % Number of points per quadrant
+function DataGeneration_3()
 
-r1 = sqrt(rand(2*n,1));                     % Random radii
-t1 = [pi/2*rand(n,1); (pi/2*rand(n,1)+pi)]; % Random angles for Q1 and Q3
-X1 = [r1.*cos(t1) r1.*sin(t1)];             % Polar-to-Cartesian conversion
+    C1 = [1 2];   % center of the circle
+    C2 = [-1 4];
+    R1 = [8 10];  % range of radii
+    R2 = [8 10];
+    A1 = [1 3]*pi/2; % [rad] range of allowed angles
+    A2 = [-1 1]*pi/2;
 
-r2 = sqrt(rand(2*n,1));
-t2 = [pi/2*rand(n,1)+pi/2; (pi/2*rand(n,1)-pi/2)]; % Random angles for Q2 and Q4
-X2 = [r2.*cos(t2) r2.*sin(t2)];
+    nPoints = 1400;
 
-X = [X1; X2];        % Predictors
-Y = ones(4*n,1);
-Y(2*n + 1:end) = -1; % Labels
+    urand = @(nPoints,limits)(limits(1) + rand(nPoints,1)*diff(limits));
+    randomCircle = @(n,r,a)(pol2cart(urand(n,a),urand(n,r)));
 
-h = figure();
-h1 = gscatter(X(:,1),X(:,2),Y);
-legend(h1,'Cluster 1','Cluster 2','Location','NW')
-saveas(h,'Data_3.png');
+    [P1x,P1y] = randomCircle(nPoints,R1,A1);
+    P1x = P1x + C1(1);
+    P1y = P1y + C1(2);
 
-total_data = [X,Y];
-ind1 = total_data(:,3) == 1;
-cluster1 = total_data(ind1,:);
-ind2 = total_data(:,3) == -1;
-cluster2 = total_data(ind2,:);
+    [P2x,P2y] = randomCircle(nPoints,R2,A2);
+    P2x = P2x + C2(1);
+    P2y = P2y + C2(2);
 
-%70-30 data split
-idx = randperm(size(cluster1,1));
-train_cluster1 = cluster1(idx(1:700),:);
-test_cluster1 = cluster1(idx(701:end),:);
-train_cluster2 = cluster2(idx(1:700),:);
-test_cluster2 = cluster2(idx(701:end),:);
+    h = figure();
+    h1 = scatter(P1x,P1y,10,'r.'); hold on;
+    h2 = scatter(P2x,P2y,10,'g.'); hold on;
+    legend([h1 h2],'Cluster 1','Cluster 2','Location','NW')
+    axis square
+    saveas(h,'Data_3.png');
+    cluster1 = [P1x,P1y];
+    cluster2 = [P2x,P2y];
 
-train_data = [train_cluster1;train_cluster2];
-test_data = [test_cluster1;test_cluster2];
+    cluster1 = [cluster1 zeros(size(cluster1,1),1)];
+    cluster1(:,3) = 1 ;
 
-csvwrite('trainData_3.csv',train_data)
-csvwrite('testData_3.csv',test_data)
+    cluster2 = [cluster2 zeros(size(cluster2,1),1)];
+    cluster2(:,3) = 0 ;
+
+
+    %70-30 data split
+    idx = randperm(size(cluster1,1));
+    train_cluster1 = cluster1(idx(1:700),:);
+    test_cluster1 = cluster1(idx(701:end),:);
+    train_cluster2 = cluster2(idx(1:700),:);
+    test_cluster2 = cluster2(idx(701:end),:);
+
+    train_data = [train_cluster1;train_cluster2];
+    test_data = [test_cluster1;test_cluster2];
+
+    csvwrite('trainData_3.csv',train_data)
+    csvwrite('testData_3.csv',test_data)
+
+end
