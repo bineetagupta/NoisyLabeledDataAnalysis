@@ -5,8 +5,7 @@ from asu_fsl.perceptron_fsl_cust import noisyLblPerceptronCust
 
 perceptronOpFile = open('perceptronOpFile.csv', 'w')
 
-# nrs = [[0.1,0.2],[0.2,0.4],[0.4,0.4],[0.6,0.8],[0.7,0.7]];
-nrs = [[0.2,0.1]];
+nrs = [[0.1,0.2],[0.2,0.4],[0.4,0.4],[0.6,0.8],[0.7,0.7]];
 
 path = '/Users/jaydeep/jaydeep_workstation/ASU/Fall2017/CSE569_FSL/project/';          
 datasets_num = 5;
